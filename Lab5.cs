@@ -31,6 +31,7 @@ namespace Lab5
             List<KeyValuePair<string, Action>> menu = new List<KeyValuePair<string, Action>>();//to add additional menu items, simply add to list and create a new method
             menu.Add(new KeyValuePair<string, Action>("Find the Factorial", () => Factorial()));
             menu.Add(new KeyValuePair<string, Action>("Find the Reverse Factorial", () => FactorialReverse()));
+            menu.Add(new KeyValuePair<string, Action>("View Max Factorials of Computer Integer Types", () => FactorialMaxType()));
 
             int index = 0;
             foreach (KeyValuePair<string, Action> item in menu)//displays menu
@@ -52,9 +53,10 @@ namespace Lab5
             menu.TrimExcess();
         }
 
-        public static void InputLong(ref long inputLong)
+        public static long InputLong()
         {
             bool valid = false;
+            long inputLong = 0;
 
             while (!valid)
             {
@@ -76,128 +78,171 @@ namespace Lab5
                     continue;
                 }
             }
+            return inputLong;
         }
 
         public static void Factorial()
         {
-            long inputLong = 0;
             bool retry = true;
 
             while (retry)
             {
-                bool display = true;
-
                 Header(); Console.Write("- Find the Factorial");
-                InputLong(ref inputLong);
+                long number = InputLong();//get n!
+                long factorial = FactorialCalc(number);//get factorial
+                FactorialDisplay(number, factorial);//display results
 
-                //factorial calculation
-                long factorial = 1;
-                for (long i = 1; i < inputLong; i++)
-                {
-                    factorial = factorial * (i + 1);
-                }
-
-                //display results
-                if (inputLong > 20)
-                {
-                    Console.WriteLine("\nSorry, the factorial of the number you entered is too large to be displayed.\nPlease enter a number between 1 and 20");
-                    display = false;
-                }
-                if (display)
-                {
-                    Console.WriteLine("The factorial of {0} is {1}", inputLong, factorial);
-                }
                 retry = Retry();
             }
         }
 
+        public static long FactorialCalc(long number)//calculate factorial
+        {
+            long factorial = 1;
+            for (long i = 1; i < number; i++)
+            {
+                factorial = factorial * (i + 1);
+            }
+            return factorial;
+        }
+
+        public static void FactorialDisplay(long number, long factorial)
+        {
+            bool display = true;
+
+            if (InputLong() > 20)
+            {
+                Console.WriteLine("\nSorry, the factorial of the number you entered is too large to be displayed.\nPlease enter a number between 1 and 20");
+                display = false;
+            }
+            if (display)
+            {
+                Console.WriteLine("{0}! = {1}", number, factorial);
+            }
+        }
+
+        /*//////////////////////////////////////////////////// recursion method
+        public static void FactorialRecursion()
+        {
+            long number = InputLong();
+            long factorial = RecursionCalc(number);
+            FactorialDisplay(number, factorial);
+        }
+
+        public static long RecursionCalc(long number)
+        {
+            long factorial = 1;
+            for (long i = 1; i < number; i++)
+            {
+                factorial = factorial * (i + 1);
+            }
+            return factorial;
+        }*////////////////////////////////////////////////////
+
         public static void FactorialReverse()
         {
-            long inputLong = 0;
             bool retry = true;
 
             while (retry)
             {
-                Header(); Console.Write("- Find the Reverse Factorial");
-                InputLong(ref inputLong);
-                long find = inputLong;
+                Header(); Console.Write("- Find the Reverse Factorial");//header
+                long inputLong = InputLong();//get user input
+                FactorialReverseDisplay(inputLong);//calculate & display
 
-                //console display variables
-                long number;
-                long factorial;
-                List<long> numberList = new List<long>();
-
-                bool remain = true;
-                int remainCount = 0;
-                while (remain)
-                {
-                    long reverse = find;
-                    number = 0;
-                    for (long i = 1; reverse > number; i++)//find largest number possible of factorial
-                    {
-                        long trim = reverse % i;
-                        reverse = reverse - trim;
-                        reverse = reverse / i;
-                        number = i;
-                    }
-                    factorial = 1;
-                    for (long i = 1; i < number; i++)//calculate the factorial
-                    {
-                        factorial = factorial * (i + 1);
-                    }
-                    long remainder = find - factorial;
-                    if (remainder >= 0)//set loop condition to find all factorials within input
-                    {
-                        remainCount = remainCount + 1;
-                    }
-                    else
-                        remain = false;
-                    find = remainder;
-                    //store values of all n! within input
-                    numberList.Add(number);
-                }
-
-                //condense answer
-                if (remainCount != 0)
-                {
-                    List<KeyValuePair<int, long>> condense = new List<KeyValuePair<int, long>>();
-                    for (int i = 0; i < numberList.Count; i++)//create multiplier (key) & remove duplicate values
-                    {
-                        int key = 1;
-                        long value = numberList[i];
-                        while (i < numberList.Count - 1 && numberList[i] == numberList[i + 1])
-                        {
-                            key = key + 1;
-                            numberList.Remove(numberList[i + 1]);
-                        }
-                        condense.Add(new KeyValuePair<int, long>(key, numberList[i]));
-                    }
-                    Console.Write("{0} =", inputLong);//display results
-                    bool first = true;
-                    foreach (KeyValuePair<int, long> kvp in condense)
-                    {
-                        if (kvp.Value > 0)
-                        {
-                            if (!first)
-                            {
-                                Console.Write(" +");
-                            }
-                            if (kvp.Key == 1)
-                            {
-                                Console.Write(" {0}!", kvp.Value);
-                            }
-                            else
-                                Console.Write(" {0}({1}!)", kvp.Key, kvp.Value);
-                        }
-                        first = false;
-                    }
-                    condense.Clear();
-                    condense.TrimExcess();
-                }
-                numberList.Clear();
-                numberList.TrimExcess();
                 retry = Retry();
             }
+        }
+
+        public static List<long> FactorialReverseCalc(long inputLong)//calculate reverse factorial
+        {
+            long find = inputLong;
+            List<long> numbers = new List<long>();
+            bool remain = true;
+            while (remain)
+            {
+                long reverse = find;
+                long number = 0;
+                for (long i = 1; reverse > number; i++)//find largest number possible of factorial
+                {
+                    long trim = reverse % i;
+                    reverse = reverse - trim;
+                    reverse = reverse / i;
+                    number = i;
+                }
+                numbers.Add(number);//store values of all n! within input
+                long remainder = find - FactorialCalc(number);
+                find = remainder;
+                if (remainder <= 0)//set loop condition to find all factorials within input
+                {
+                    remain = false;
+                }
+            }
+            return numbers;
+        }
+
+        public static void FactorialReverseDisplay(long inputLong)
+        {
+            List<long> numbers = FactorialReverseCalc(inputLong);//calculate
+            if (numbers.Count > 1)//create multiplier (key) & remove duplicate values to condense result
+            {
+                List<KeyValuePair<int, long>> condense = new List<KeyValuePair<int, long>>();
+                for (int i = 0; i < numbers.Count; i++)//
+                {
+                    int key = 1;
+                    long value = numbers[i];
+                    while (i < numbers.Count - 1 && numbers[i] == numbers[i + 1])
+                    {
+                        key = key + 1;
+                        numbers.Remove(numbers[i + 1]);
+                    }
+                    condense.Add(new KeyValuePair<int, long>(key, numbers[i]));
+                }
+                Console.Write("{0} =", inputLong);//display results
+                bool first = true;
+                foreach (KeyValuePair<int, long> kvp in condense)
+                {
+                    if (kvp.Value > 0)
+                    {
+                        if (!first)
+                        {
+                            Console.Write(" +");
+                        }
+                        if (kvp.Key == 1)
+                        {
+                            Console.Write(" {0}!", kvp.Value);
+                        }
+                        else
+                            Console.Write(" {0}({1}!)", kvp.Key, kvp.Value);
+                    }
+                    first = false;
+                }
+                condense.Clear();
+                condense.TrimExcess();
+            }
+            numbers.Clear();
+            numbers.TrimExcess();
+        }
+
+        public static void FactorialMaxType()
+        {
+            Header(); Console.WriteLine(" - View Max Factorials of Computer Integer Types\n");
+            List<KeyValuePair<string, long>> max = new List<KeyValuePair<string, long>>();
+            max.Add(new KeyValuePair<string, long>("sbyte MaxValue = ", sbyte.MaxValue));
+            max.Add(new KeyValuePair<string, long>("byte MaxValue = ", byte.MaxValue));
+            max.Add(new KeyValuePair<string, long>("short MaxValue = ", short.MaxValue));
+            max.Add(new KeyValuePair<string, long>("ushort MaxValue = ", ushort.MaxValue));
+            max.Add(new KeyValuePair<string, long>("int MaxValue = ", int.MaxValue));
+            max.Add(new KeyValuePair<string, long>("uint MaxValue = ", uint.MaxValue));
+            max.Add(new KeyValuePair<string, long>("long MaxValue = ", long.MaxValue));
+
+            foreach (KeyValuePair<string, long> kvp in max)
+            {
+                Console.WriteLine(kvp.Key + kvp.Value);
+                FactorialReverseDisplay(kvp.Value);
+                Console.WriteLine(Environment.NewLine);
+            }
+            Console.WriteLine("ulong MaxValue = N/A\n");
+            Console.WriteLine("BigInteger MaxValue = infinite");
         }
 
         public static void Invalid()
