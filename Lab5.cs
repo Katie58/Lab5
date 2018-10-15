@@ -1,176 +1,164 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Lab5
 {
-    class Program//starts getting funky at 21
+    class Program
     {
         static void Main(string[] args)
         {
-            long recurse = 0;
-            bool retry = true;
             bool exit = false;
-
-            while (retry)
+            while (!exit)
             {
-                MainMenu(ref recurse, ref retry, ref exit);
-                Exit(ref retry, ref exit);
+                MainMenu();
+                exit = ReturnToMain();
             }
+            Exit();
         }
 
         public static void Header()
         {
             Console.Clear();
-            Console.WriteLine("Welcome, to the Factorial Calculator!\n");
+            Console.Write("Welcome, to the Factorial Calculator! ");
         }
 
-        public static void MainMenu(ref long recurse, ref bool retry, ref bool exit)
+        public static void MainMenu()
         {
             Header();
-            Console.WriteLine("Please choose an option below by entering the corresponding number:\n");
-            Console.WriteLine("1. Find the factorial of a number");
-            Console.WriteLine("2. Find the reverse factorial of a number");
-            ConsoleKey menuKey = ConsoleKey.Enter;
-            while (menuKey != ConsoleKey.Escape)
+            Console.WriteLine("\n\nPlease choose an option below by entering the corresponding number: \n");
+
+            List<KeyValuePair<string, Action>> menu = new List<KeyValuePair<string, Action>>();//to add additional menu items, simply add to list and create a new method
+            menu.Add(new KeyValuePair<string, Action>("Find the Factorial", () => Factorial()));
+            menu.Add(new KeyValuePair<string, Action>("Find the Reverse Factorial", () => FactorialReverse()));
+
+            int index = 0;
+            foreach (KeyValuePair<string, Action> item in menu)//displays menu
             {
-                menuKey = Console.ReadKey().Key;
-                if (menuKey == ConsoleKey.Escape)
+                index = index + 1;
+                Console.WriteLine("{0}. {1}", index, item.Key);
+            }
+            Console.WriteLine(Environment.NewLine);
+
+            if (int.TryParse(Console.ReadLine(), out int entry) && entry > 0 && entry <= menu.Count)
+            {
+                menu[entry - 1].Value.Invoke();
+            }
+            else
+            {
+                Invalid();
+            }
+            menu.Clear();
+            menu.TrimExcess();
+        }
+
+        public static void InputLong(ref long inputLong)
+        {
+            bool valid = false;
+
+            while (!valid)
+            {
+                Console.Write("\n\nPlease enter an integer to be calculate:  ");
+                string input = Console.ReadLine();
+                if (long.TryParse(input, out inputLong) && inputLong > 0)
                 {
-                    exit = true;
-                    break;
+                    valid = true;
                 }
-                else if (menuKey == ConsoleKey.D1 || menuKey == ConsoleKey.NumPad1)
+                else if (input.All(Char.IsDigit))
                 {
-                    MathCalcFactorial(ref recurse, ref retry, ref exit);
-                    break;
-                }
-                else if (menuKey == ConsoleKey.D2 || menuKey == ConsoleKey.NumPad2)
-                {
-                    MathCalcReverseFactorial(ref retry, ref exit);
-                    break;
+                    Console.WriteLine("\nSorry, the number you entered is too large to be displayed");
+                    Invalid();
+                    continue;
                 }
                 else
                 {
                     Invalid();
                     continue;
                 }
-            }
-            if (menuKey == ConsoleKey.Escape)
-            {
-                exit = true;
             }
         }
 
-        public static void MathCalcFactorial(ref long recurse, ref bool retry, ref bool exit)
+        public static void Factorial()
         {
+            long inputLong = 0;
+            bool retry = true;
+
             while (retry)
             {
-                Header();
+                bool display = true;
 
-                long input = 0;
+                Header(); Console.Write("- Find the Factorial");
+                InputLong(ref inputLong);
 
-                Console.WriteLine("Please enter an integer that's greater than 0 but less than 10: ");
-                string userInput = Console.ReadLine();
-
-                if (long.TryParse(userInput, out input) && input > 0)
+                //factorial calculation
+                long factorial = 1;
+                for (long i = 1; i < inputLong; i++)
                 {
-                    recurse = input;
-                }
-                else if (userInput.All(Char.IsDigit))
-                {
-                    Console.WriteLine("Sorry, the number you entered is too large to be displayed");
-                    Invalid();
-                }
-                else
-                    Invalid();
-
-                if (input > 10)
-                {
-                    Console.WriteLine("Tisk, Tisk, Tisk, you entered a number greater than 10! Lucky for you, I removed those constraints :)");
+                    factorial = factorial * (i + 1);
                 }
 
-                //using recursive
-                long factorialRecurse = MathRecurse(recurse);
-                //using loop
-                long factorialLoopIncrease = 1;
-                for (long i = 1; i < input; i++)
+                //display results
+                if (inputLong > 20)
                 {
-                    factorialLoopIncrease = factorialLoopIncrease * (i + 1);
+                    Console.WriteLine("\nSorry, the factorial of the number you entered is too large to be displayed.\nPlease enter a number between 1 and 20");
+                    display = false;
                 }
-                if (factorialLoopIncrease > long.MaxValue || factorialRecurse > long.MaxValue)
+                if (display)
                 {
-                    Console.WriteLine("Sorry, the factorial of the number you entered is too large to be displayed");
-                    Invalid();
+                    Console.WriteLine("The factorial of {0} is {1}", inputLong, factorial);
                 }
-                Console.WriteLine("Using the recursive method, the factorial of {0} is {1}", input, factorialRecurse);
-                Console.WriteLine("Using the loop method, the factorial of {0} is {1}", input, factorialLoopIncrease);
-                retry = Retry(ref retry, ref exit);
+                retry = Retry();
             }
         }
 
-        static void MathCalcReverseFactorial(ref bool retry, ref bool exit)
+        public static void FactorialReverse()
         {
+            long inputLong = 0;
+            bool retry = true;
+
             while (retry)
             {
-                Header();
-                Console.WriteLine("Enter a large number to reverse the calculation: ");
-                string inputString = Console.ReadLine();
-                long findInput = 0;
-                long find = 0;
-                if (long.TryParse(inputString, out findInput))//store valid input & duplicate
-                {
-                    find = findInput;
-                }
-                else if (inputString.All(Char.IsDigit))
-                {
-                    Console.WriteLine("Sorry, the number you entered is too large to be displayed");
-                    Invalid();
-                    continue;
-                }
-                else
-                {
-                    Invalid();
-                    continue;
-                }
+                Header(); Console.Write("- Find the Reverse Factorial");
+                InputLong(ref inputLong);
+                long find = inputLong;
 
                 //console display variables
-                long reverseFactorial;
                 long number;
+                long factorial;
                 List<long> numberList = new List<long>();
-                List<long> factorialList = new List<long>();
-                List<long> remainderList = new List<long>();
 
                 bool remain = true;
+                int remainCount = 0;
                 while (remain)
                 {
                     long reverse = find;
                     number = 0;
-                    for (int i = 1; reverse > number; i++)//find largest number possible of factorial
+                    for (long i = 1; reverse > number; i++)//find largest number possible of factorial
                     {
                         long trim = reverse % i;
                         reverse = reverse - trim;
                         reverse = reverse / i;
                         number = i;
                     }
-                    reverseFactorial = 1;
+                    factorial = 1;
                     for (long i = 1; i < number; i++)//calculate the factorial
                     {
-                        reverseFactorial = reverseFactorial * (i + 1);
+                        factorial = factorial * (i + 1);
                     }
-                    long remainder = find - reverseFactorial;
-                    if (remainder <= 0)//set loop condition to find all factorials within input
+                    long remainder = find - factorial;
+                    if (remainder >= 0)//set loop condition to find all factorials within input
                     {
-                        remain = false;
+                        remainCount = remainCount + 1;
                     }
+                    else
+                        remain = false;
                     find = remainder;
-                    //store values (n!, factorial, remainder)
+                    //store values of all n! within input
                     numberList.Add(number);
-                    factorialList.Add(reverseFactorial);
-                    remainderList.Add(remainder);
                 }
-                Console.WriteLine("Within the number entered {0}, there is the factorial of {1}! which equals {2} with a remainder of {3}", findInput, numberList[0], factorialList[0], remainderList[0]);
+
                 //condense answer
-                if (remainderList[0] != 0)
+                if (remainCount != 0)
                 {
                     List<KeyValuePair<int, long>> condense = new List<KeyValuePair<int, long>>();
                     for (int i = 0; i < numberList.Count; i++)//create multiplier (key) & remove duplicate values
@@ -184,89 +172,92 @@ namespace Lab5
                         }
                         condense.Add(new KeyValuePair<int, long>(key, numberList[i]));
                     }
-                    Console.Write("\nTherefore, your number {0} =", findInput);//display results
+                    Console.Write("{0} =", inputLong);//display results
                     bool first = true;
                     foreach (KeyValuePair<int, long> kvp in condense)
                     {
-                        if (!first)
+                        if (kvp.Value > 0)
                         {
-                            Console.Write(" +");
+                            if (!first)
+                            {
+                                Console.Write(" +");
+                            }
+                            if (kvp.Key == 1)
+                            {
+                                Console.Write(" {0}!", kvp.Value);
+                            }
+                            else
+                                Console.Write(" {0}({1}!)", kvp.Key, kvp.Value);
                         }
-                        if (kvp.Key == 1)
-                        {
-                            Console.Write(" {0}!", kvp.Value);
-                        }
-                        else
-                            Console.Write(" {0}({1}!)", kvp.Key, kvp.Value);
-
                         first = false;
                     }
+                    condense.Clear();
+                    condense.TrimExcess();
                 }
-                retry = Retry(ref retry, ref exit);
+                numberList.Clear();
+                numberList.TrimExcess();
+                retry = Retry();
             }
-        }
-
-        public static long MathRecurse(long recurse)
-        {
-            if (recurse > 1)
-            {
-                recurse = recurse * MathRecurse(recurse - 1);
-            }
-            else
-                recurse = 1;
-            return recurse;
         }
 
         public static void Invalid()
         {
-            Console.WriteLine("\nInvalid Entry, Please Try Again or Press Escape to Exit... ");
+            Console.WriteLine("\nInvalid Entry, Please Try Again... ");
         }
 
-        public static bool Retry(ref bool retry, ref bool exit)
+        public static bool Retry()
         {
-            if (!exit)
+            bool retry = true;
+            Console.Write("\n\nEnter a new number? (y/n)  ");
+            while (retry)
             {
-                Console.WriteLine("\nEnter a new number? (y/n)\n");
-                ConsoleKey answer = Console.ReadKey().Key;
-                if (answer == ConsoleKey.Y)
+                ConsoleKey key = Console.ReadKey().Key;
+                if (key == ConsoleKey.Y)
                 {
-                    retry = true;
+                    break;
                 }
-                else if (answer == ConsoleKey.N)
+                else if (key == ConsoleKey.N)
                 {
                     retry = false;
                 }
                 else
                 {
                     Invalid();
-                    Retry(ref retry, ref exit);
+                    continue;
                 }
             }
             return retry;
         }
 
-        public static void Exit(ref bool retry, ref bool exit)
+        public static bool ReturnToMain()
         {
-            Console.WriteLine("\nReturn to Main Menu? (y/n)\n");
-            ConsoleKey answer = Console.ReadKey().Key;
-            if (answer == ConsoleKey.Y)
+            bool exit = false;
+            while (!exit)
             {
-                retry = true;
-            }
-            else if (answer == ConsoleKey.N)
-            {
-                retry = false;
-                Console.WriteLine("\nGoodbye! Press the ESCAPE key to exit");
-                while (Console.ReadKey().Key != ConsoleKey.Escape)
+                Console.Write("\nReturn to Main Menu? (y/n)  ");
+                ConsoleKey key = Console.ReadKey().Key;
+                if (key == ConsoleKey.Y)
                 {
-                    Console.ReadKey();
-                    continue;
+                    break;
+                }
+                else if (key == ConsoleKey.N)
+                {
+                    exit = true;
+                }
+                else
+                {
+                    Invalid();
                 }
             }
-            else
+            return exit;
+        }
+
+        public static void Exit()
+        {
+            Console.WriteLine("\nGoodbye! Press the ESCAPE key to exit");
+            while (Console.ReadKey().Key != ConsoleKey.Escape)
             {
-                Invalid();
-                Retry(ref retry, ref exit);
+                continue;
             }
         }
     }
