@@ -110,7 +110,7 @@ namespace Lab5
         {
             bool display = true;
 
-            if (InputLong() > 20)
+            if (number > 20)
             {
                 Console.WriteLine("\nSorry, the factorial of the number you entered is too large to be displayed.\nPlease enter a number between 1 and 20");
                 display = false;
